@@ -217,28 +217,53 @@
             }
         });
 
-        // UI & RITUALS
-        function initUI() {
-            const grid = document.getElementById('ritual-grid');
-            rituals.forEach(r => {
-                const isActive = activeRituals.includes(r.id);
-                const tile = document.createElement('div');
-                tile.className = `glass-card rounded-3xl p-6 flex flex-col items-center justify-center cursor-pointer text-center group ${isActive ? 'active' : ''}`;
-                tile.innerHTML = `
-                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">${r.icon}</div>
-                    <div class="text-[10px] uppercase tracking-widest font-bold text-teal-100/80">${r.label}</div>
-                `;
-                tile.onclick = () => toggleRitual(r.id, tile);
-                grid.appendChild(tile);
-            });
+       // 1. UPDATED RITUALS ARRAY WITH IMAGE PATHS
+const rituals = [
+    { id: 'guasha', label: 'Gua Sha', img: 'assets/guasha.jpg' },
+    { id: 'hair', label: 'Hair Care', img: 'assets/hair.jpg' },
+    { id: 'nails', label: 'Clean Nails', img: 'assets/nails.jpg' },
+    { id: 'night', label: 'Night Routine', img: 'assets/night.jpg' },
+    { id: 'journal', label: 'Journaling', img: 'assets/journal.jpg' },
+    { id: 'breath', label: 'Breathing', img: 'assets/breath.jpg' }
+];
 
-            // Journal Auto-save
-            const journal = document.getElementById('journal');
-            journal.value = localStorage.getItem('zen_journal') || '';
-            journal.oninput = (e) => localStorage.setItem('zen_journal', e.target.value);
+// 2. UPDATED UI INJECTION (Supports High-End Card Visuals)
+function initUI() {
+    const grid = document.getElementById('ritual-grid');
+    rituals.forEach(r => {
+        const isActive = activeRituals.includes(r.id);
+        const tile = document.createElement('div');
+        
+        // Dynamic Glass Card Template
+        tile.className = `glass-card relative overflow-hidden rounded-3xl p-4 flex flex-col items-center justify-end h-48 cursor-pointer group transition-all duration-500 ${isActive ? 'active' : ''}`;
+        
+        tile.innerHTML = `
+            <div class="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-700">
+                <img src="${r.img}" alt="${r.label}" class="w-full h-full object-cover grayscale-[20%] brightness-[80%]">
+            </div>
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-1"></div>
 
-            updateProgress();
-        }
+            <div class="relative z-10 text-[10px] uppercase tracking-[0.2em] font-bold text-teal-100 group-hover:text-white transition-colors">
+                ${r.label}
+            </div>
+            
+            <div class="absolute top-4 right-4 z-10 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}">
+                <div class="w-2 h-2 rounded-full bg-teal-400 shadow-[0_0_10px_#1de9b6]"></div>
+            </div>
+        `;
+        
+        tile.onclick = () => toggleRitual(r.id, tile);
+        grid.appendChild(tile);
+    });
+
+    // Journal persistence
+    const journal = document.getElementById('journal');
+    journal.value = localStorage.getItem('zen_journal') || '';
+    journal.oninput = (e) => localStorage.setItem('zen_journal', e.target.value);
+
+    updateProgress();
+}
 
         function toggleRitual(id, el) {
             document.getElementById('chime').play();
