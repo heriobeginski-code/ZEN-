@@ -7,276 +7,212 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Quicksand:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --aurora-teal: #1de9b6;
-            --aurora-blue: #2979ff;
-            --aurora-violet: #651fff;
-        }
-
         body {
             margin: 0;
-            background: #05070a;
+            background: #020406;
             color: white;
             font-family: 'Quicksand', sans-serif;
-            overflow: hidden;
             height: 100vh;
+            overflow: hidden;
         }
 
         .holographic {
             font-family: 'Syncopate', sans-serif;
             text-transform: uppercase;
-            letter-spacing: 0.2em;
-            background: linear-gradient(90deg, #1de9b6, #2979ff, #651fff, #1de9b6);
+            letter-spacing: 0.3em;
+            background: linear-gradient(90deg, #00ced1, #2979ff, #651fff, #00ced1);
             background-size: 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: holo-flow 8s linear infinite;
+            animation: holo-flow 10s linear infinite;
         }
 
-        @keyframes holo-flow {
-            0% { background-position: 0%; }
-            100% { background-position: 300%; }
-        }
+        @keyframes holo-flow { 0% { background-position: 0%; } 100% { background-position: 300%; } }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
+        .ritual-tile {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,206,209,0.05) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 24px;
+            position: relative;
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 24px;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            cursor: pointer;
         }
 
-        .glass-card.active {
-            background: rgba(29, 233, 182, 0.1);
-            border-color: rgba(29, 233, 182, 0.5);
-            box-shadow: 0 0 20px rgba(29, 233, 182, 0.2);
+        .ritual-tile:hover {
+            border-color: rgba(0, 206, 209, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .ritual-tile.active {
+            border-color: #00ced1;
+            box-shadow: 0 0 30px rgba(0, 206, 209, 0.2);
+        }
+
+        .tile-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0; /* Starts hidden, fades in via JS onload */
+            mix-blend-mode: luminosity;
+            transition: opacity 1s ease-in-out;
+            z-index: 0;
         }
 
         canvas#aurora {
             position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            filter: blur(30px);
+            top: 0; left: 0; z-index: -1;
+            filter: blur(40px);
         }
 
-        .lotus-container {
-            transition: transform 4s ease-in-out;
-        }
-
-        .breathing-inhale { transform: scale(1.4); }
-        .breathing-exhale { transform: scale(0.8); }
-
-        textarea {
-            background: transparent;
-            border: none;
-            outline: none;
-            resize: none;
-        }
-
-        /* Hide scrollbars */
-        ::-webkit-scrollbar { display: none; }
+        main::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
 
     <canvas id="aurora"></canvas>
 
-    <main class="relative z-10 h-screen w-full flex flex-col p-8 overflow-y-auto">
-        <header class="flex justify-between items-center mb-12">
-            <div class="flex items-center gap-4">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-teal-400">
-                    <path d="M12 22C12 22 20 18 20 12C20 6 12 2 12 2C12 2 4 6 4 12C4 18 12 22 12 22Z"/>
-                    <path d="M12 22V12M12 12L19 7M12 12L5 7"/>
-                </svg>
-                <h1 class="holographic text-xl font-bold">Zen Sanctuary</h1>
+    <main class="relative z-10 h-screen w-full flex flex-col p-10 overflow-y-auto">
+        <header class="flex justify-between items-end mb-12">
+            <div>
+                <h1 class="holographic text-2xl font-bold">Zen Sanctuary</h1>
+                <p class="text-[10px] tracking-[0.4em] opacity-40 mt-2 uppercase">Satellite 05 // Aurora Wellness</p>
             </div>
-            <div id="progress-bar" class="text-xs tracking-widest text-teal-200 opacity-70">RITUAL PROGRESS: 0%</div>
+            <div id="progress-bar" class="text-[10px] tracking-widest text-cyan-400 font-bold">PROGRESS: 0%</div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
-            <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4" id="ritual-grid">
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            <div class="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="ritual-grid">
                 </div>
 
             <div class="flex flex-col gap-6">
-                <div class="glass-card rounded-3xl p-8 flex flex-col items-center justify-center text-center">
-                    <div id="lotus" class="lotus-container mb-6">
-                        <svg width="80" height="80" viewBox="0 0 100 100" class="text-teal-300">
-                            <path fill="currentColor" opacity="0.6" d="M50 20C50 20 30 40 30 60C30 80 50 90 50 90C50 90 70 80 70 60C70 40 50 20Z"/>
-                            <path fill="currentColor" d="M50 30C50 30 35 45 35 60C35 75 50 85 50 85C50 85 65 75 65 60C65 45 50 30Z"/>
+                <div class="ritual-tile h-auto py-10 items-center justify-center text-center">
+                    <div id="lotus-icon" class="mb-6">
+                        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#00ced1" stroke-width="1.5">
+                            <path d="M12 22C12 22 20 18 20 12C20 6 12 2 12 2C12 2 4 6 4 12C4 18 12 22 12 22Z"/>
                         </svg>
                     </div>
-                    <p id="breath-text" class="holographic text-sm">Tap to Begin Breath</p>
-                    <button id="breath-btn" class="mt-4 px-6 py-2 border border-teal-500/30 rounded-full text-xs hover:bg-teal-500/10 transition">START BOX BREATH</button>
+                    <button id="breath-btn" class="px-6 py-2 border border-cyan-500/30 rounded-full text-[10px] tracking-widest hover:bg-cyan-500/10 transition">START BREATH</button>
                 </div>
 
-                <div class="glass-card rounded-3xl p-6 flex-grow flex flex-col">
-                    <h3 class="holographic text-xs mb-4">Daily Reflection</h3>
-                    <textarea id="journal" class="w-full flex-grow text-teal-100 placeholder-teal-700/50 leading-relaxed" placeholder="What are you grateful for in this moment?"></textarea>
+                <div class="ritual-tile h-64 justify-start">
+                    <span class="text-[10px] tracking-widest opacity-50 mb-4 uppercase">Reflection</span>
+                    <textarea id="journal" class="w-full h-full bg-transparent border-none outline-none text-sm leading-relaxed text-cyan-100/80" placeholder="Type your thoughts..."></textarea>
                 </div>
             </div>
         </div>
     </main>
 
-    <audio id="chime" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
-
     <script>
-        // CONFIG & STATE
+        // Data mapping strictly following the Source of Truth
         const rituals = [
-            { id: 'guasha.jpg', label: 'Gua Sha', icon: '✨' },
-            { id: 'hair.jpg', label: 'Hair Care', icon: '🌿' },
-            { id: 'nails.jpg', label: 'Clean Nails', icon: '💅' },
-            { id: 'night.jpg', label: 'Night Mask', icon: '🌙' },
-            { id: 'journal.jpg', label: 'Journaling', icon: '✍️' },
-            { id: 'breath.jpg', label: 'Breathing', icon: '🌬️' }
+            { id: 'guasha.jpg', label: 'Gua Sha', img: 'assets/guasha.jpg' },
+            { id: 'hair.jpg', label: 'Hair Care', img: 'assets/hair.jpg' },
+            { id: 'nails.jpg', label: 'Clean Nails', img: 'assets/nails.jpg' },
+            { id: 'night.jpg', label: 'Night Routine', img: 'assets/night.jpg' },
+            { id: 'journal.jpg', label: 'Journaling', img: 'assets/journal.jpg' },
+            { id: 'breath.jpg', label: 'Breathing', img: 'assets/breath.jpg' }
         ];
 
         let activeRituals = JSON.parse(localStorage.getItem('zen_rituals')) || [];
-        let breathState = 'idle'; // idle, inhale, hold, exhale
-        let auroraSpeed = 0.002;
-        let auroraIntensity = 0.3;
 
-        // AURORA ENGINE (Canvas)
-        const canvas = document.getElementById('aurora');
-        const ctx = canvas.getContext('2d');
-        let width, height, time = 0;
-
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+        function initUI() {
+            const grid = document.getElementById('ritual-grid');
+            grid.innerHTML = '';
+            
+            rituals.forEach(r => {
+                const isActive = activeRituals.includes(r.id);
+                const tile = document.createElement('div');
+                tile.className = `ritual-tile ${isActive ? 'active' : ''}`;
+                
+                tile.innerHTML = `
+                    <img src="${r.img}" 
+                         class="tile-img" 
+                         onload="this.style.opacity='0.4'" 
+                         onerror="this.parentElement.style.background='rgba(255,255,255,0.05)'">
+                    <div class="relative z-10 flex justify-between items-center w-full">
+                        <span class="text-[10px] tracking-[0.2em] font-bold uppercase">${r.label}</span>
+                        <div class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-cyan-400 shadow-[0_0_8px_#00ced1]' : 'bg-white/10'}"></div>
+                    </div>
+                `;
+                
+                tile.onclick = () => toggleRitual(r.id);
+                grid.appendChild(tile);
+            });
+            updateProgress();
         }
 
-        function drawAurora() {
-            time += auroraSpeed;
-            ctx.fillStyle = '#05070a';
-            ctx.fillRect(0, 0, width, height);
+        function toggleRitual(id) {
+            if (activeRituals.includes(id)) {
+                activeRituals = activeRituals.filter(i => i !== id);
+            } else {
+                activeRituals.push(id);
+            }
+            localStorage.setItem('zen_rituals', JSON.stringify(activeRituals));
+            initUI();
+        }
 
-            const layers = 3;
-            for (let l = 0; l < layers; l++) {
+        function updateProgress() {
+            const val = (activeRituals.length / rituals.length);
+            document.getElementById('progress-bar').innerText = `PROGRESS: ${Math.round(val * 100)}%`;
+            
+            // Handshake Protocol
+            window.parent.postMessage({ 
+                type: 'UPDATE_PROGRESS', 
+                appId: 'zen-05', 
+                value: val 
+            }, '*');
+        }
+
+        // Aurora Engine Logic
+        const canvas = document.getElementById('aurora');
+        const ctx = canvas.getContext('2d');
+        let w, h, time = 0;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+
+        function animate() {
+            time += 0.002;
+            ctx.fillStyle = '#020406';
+            ctx.fillRect(0, 0, w, h);
+            
+            for(let i=0; i<3; i++) {
                 ctx.beginPath();
-                ctx.moveTo(0, height);
-                
-                const gradient = ctx.createLinearGradient(0, 0, width, 0);
-                gradient.addColorStop(0, '#1de9b600');
-                gradient.addColorStop(0.5, l === 0 ? '#1de9b666' : l === 1 ? '#2979ff66' : '#651fff66');
-                gradient.addColorStop(1, '#651fff00');
-
-                ctx.strokeStyle = gradient;
-                ctx.lineWidth = 150;
-                ctx.globalAlpha = auroraIntensity;
-
-                for (let x = 0; x < width; x += 10) {
-                    const y = (height * 0.4) + 
-                              Math.sin(x * 0.002 + time + l) * 100 + 
-                              Math.cos(x * 0.001 - time * 0.5) * 50;
+                const g = ctx.createLinearGradient(0,0,w,0);
+                g.addColorStop(0, 'transparent');
+                g.addColorStop(0.5, i==0 ? '#00ced122' : i==1 ? '#2979ff22' : '#651fff22');
+                g.addColorStop(1, 'transparent');
+                ctx.strokeStyle = g;
+                ctx.lineWidth = 250;
+                for(let x=0; x<w; x+=30) {
+                    const y = h/2 + Math.sin(x*0.001 + time + i)*150;
                     ctx.lineTo(x, y);
                 }
                 ctx.stroke();
             }
-            requestAnimationFrame(drawAurora);
+            requestAnimationFrame(animate);
         }
 
-        // BREATHING LOGIC
-        const breathBtn = document.getElementById('breath-btn');
-        const lotus = document.getElementById('lotus');
-        const breathText = document.getElementById('breath-text');
-
-        function runBreathCycle() {
-            if (breathState === 'idle') return;
-
-            // Inhale
-            breathState = 'inhale';
-            breathText.innerText = "Inhale...";
-            lotus.className = 'lotus-container breathing-inhale';
-            auroraSpeed = 0.01; auroraIntensity = 0.8;
-            
-            setTimeout(() => {
-                // Hold
-                breathText.innerText = "Hold...";
-                setTimeout(() => {
-                    // Exhale
-                    breathState = 'exhale';
-                    breathText.innerText = "Exhale...";
-                    lotus.className = 'lotus-container breathing-exhale';
-                    auroraSpeed = 0.001; auroraIntensity = 0.2;
-                    
-                    setTimeout(() => {
-                        breathText.innerText = "Hold...";
-                        setTimeout(runBreathCycle, 4000);
-                    }, 4000);
-                }, 4000);
-            }, 4000);
-        }
-
-        breathBtn.addEventListener('click', () => {
-            if (breathState === 'idle') {
-                breathState = 'active';
-                breathBtn.innerText = "STOP SESSION";
-                runBreathCycle();
-            } else {
-                location.reload(); // Simple reset
-            }
-        });
-
-      function initUI() {
-    const grid = document.getElementById('ritual-grid');
-    grid.innerHTML = '';
-    
-    rituals.forEach(r => {
-        const isActive = activeRituals.includes(r.id);
-        const tile = document.createElement('div');
-        tile.className = `ritual-tile ${isActive ? 'active' : ''}`;
-        
-        // This adds a fallback gradient so the boxes are never "empty"
-        tile.style.background = `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,206,209,0.05) 100%)`;
-        
-        tile.innerHTML = `
-            <img src="${r.img}" 
-                 class="tile-img" 
-                 onload="this.style.opacity='0.4'" 
-                 onerror="this.style.display='none'">
-            <div class="relative z-10 flex justify-between items-center w-full">
-                <span class="text-[10px] tracking-[0.2em] font-bold uppercase">${r.label}</span>
-                <div class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-cyan-400 shadow-[0_0_8px_#00ced1]' : 'bg-white/10'}"></div>
-            </div>
-        `;
-        
-        tile.onclick = () => toggleRitual(r.id);
-        grid.appendChild(tile);
-    });
-    updateProgress();
-}
-
-        function toggleRitual(id, el) {
-            document.getElementById('chime').play();
-            if (activeRituals.includes(id)) {
-                activeRituals = activeRituals.filter(i => i !== id);
-                el.classList.remove('active');
-            } else {
-                activeRituals.push(id);
-                el.classList.add('active');
-            }
-            localStorage.setItem('zen_rituals', JSON.stringify(activeRituals));
-            updateProgress();
-        }
-
-        function updateProgress() {
-            const progress = (activeRituals.length / rituals.length);
-            document.getElementById('progress-bar').innerText = `RITUAL PROGRESS: ${Math.round(progress * 100)}%`;
-            
-            // Dashboard Handshake
-            window.parent.postMessage({ 
-                type: 'UPDATE_PROGRESS', 
-                appId: 'zen-05', 
-                value: progress 
-            }, '*');
-        }
-
-        // INITIALIZE
         window.addEventListener('resize', resize);
         resize();
+        animate();
         initUI();
-        drawAurora();
 
+        const j = document.getElementById('journal');
+        j.value = localStorage.getItem('zen_journal') || '';
+        j.oninput = (e) => localStorage.setItem('zen_journal', e.target.value);
     </script>
 </body>
 </html>
