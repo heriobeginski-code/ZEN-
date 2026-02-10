@@ -122,12 +122,12 @@
     <script>
         // CONFIG & STATE
         const rituals = [
-            { id: 'guasha', label: 'Gua Sha', icon: '✨' },
-            { id: 'hair', label: 'Hair Care', icon: '🌿' },
-            { id: 'nails', label: 'Clean Nails', icon: '💅' },
-            { id: 'night', label: 'Night Mask', icon: '🌙' },
-            { id: 'journal', label: 'Journaling', icon: '✍️' },
-            { id: 'breath', label: 'Breathing', icon: '🌬️' }
+            { id: 'guasha.jpg', label: 'Gua Sha', icon: '✨' },
+            { id: 'hair.jpg', label: 'Hair Care', icon: '🌿' },
+            { id: 'nails.jpg', label: 'Clean Nails', icon: '💅' },
+            { id: 'night.jpg', label: 'Night Mask', icon: '🌙' },
+            { id: 'journal.jpg', label: 'Journaling', icon: '✍️' },
+            { id: 'breath.jpg', label: 'Breathing', icon: '🌬️' }
         ];
 
         let activeRituals = JSON.parse(localStorage.getItem('zen_rituals')) || [];
@@ -217,28 +217,34 @@
             }
         });
 
-        // UI & RITUALS
-        function initUI() {
-            const grid = document.getElementById('ritual-grid');
-            rituals.forEach(r => {
-                const isActive = activeRituals.includes(r.id);
-                const tile = document.createElement('div');
-                tile.className = `glass-card rounded-3xl p-6 flex flex-col items-center justify-center cursor-pointer text-center group ${isActive ? 'active' : ''}`;
-                tile.innerHTML = `
-                    <div class="text-3xl mb-3 group-hover:scale-110 transition-transform">${r.icon}</div>
-                    <div class="text-[10px] uppercase tracking-widest font-bold text-teal-100/80">${r.label}</div>
-                `;
-                tile.onclick = () => toggleRitual(r.id, tile);
-                grid.appendChild(tile);
-            });
-
-            // Journal Auto-save
-            const journal = document.getElementById('journal');
-            journal.value = localStorage.getItem('zen_journal') || '';
-            journal.oninput = (e) => localStorage.setItem('zen_journal', e.target.value);
-
-            updateProgress();
-        }
+      function initUI() {
+    const grid = document.getElementById('ritual-grid');
+    grid.innerHTML = '';
+    
+    rituals.forEach(r => {
+        const isActive = activeRituals.includes(r.id);
+        const tile = document.createElement('div');
+        tile.className = `ritual-tile ${isActive ? 'active' : ''}`;
+        
+        // This adds a fallback gradient so the boxes are never "empty"
+        tile.style.background = `linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,206,209,0.05) 100%)`;
+        
+        tile.innerHTML = `
+            <img src="${r.img}" 
+                 class="tile-img" 
+                 onload="this.style.opacity='0.4'" 
+                 onerror="this.style.display='none'">
+            <div class="relative z-10 flex justify-between items-center w-full">
+                <span class="text-[10px] tracking-[0.2em] font-bold uppercase">${r.label}</span>
+                <div class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-cyan-400 shadow-[0_0_8px_#00ced1]' : 'bg-white/10'}"></div>
+            </div>
+        `;
+        
+        tile.onclick = () => toggleRitual(r.id);
+        grid.appendChild(tile);
+    });
+    updateProgress();
+}
 
         function toggleRitual(id, el) {
             document.getElementById('chime').play();
